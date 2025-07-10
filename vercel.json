@@ -1,0 +1,8 @@
+{
+  "functions": {
+    "api/intelligent-ocr.js": {
+      "maxDuration": 30,
+      "includeFiles": "node_modules/tesseract.js-core/tessdata/**"
+    }
+  }
+}

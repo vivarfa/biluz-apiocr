@@ -1,0 +1,10 @@
+{
+  "name": "biluz-api",
+  "version": "1.0.0",
+  "description": "API para la extensión BILUZ",
+  "dependencies": {
+    "@google/generative-ai": "^0.2.1",
+    "axios": "^1.6.8",
+    "tesseract.js": "^5.0.5"
+  }
+}
