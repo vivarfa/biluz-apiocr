@@ -55,7 +55,7 @@ const handler = async (req, res) => {
                 });
                 // Si la API responde bien, añadimos los datos.
                 // Renombramos 'nombre' a 'razonSocial' para consistencia con la v2 de la API de RUC.
-                resultados.push({ tipo, ...(response.data.nombre ? { razonSocial: response.data.nombre } : response.data) });
+                resultados.push({ tipo, ...response.data });
             } catch (apiError) {
                 // Si la API de apis.net.pe devuelve un error (ej: 404, 422, 401 por token inválido)
                 // lo capturamos aquí y creamos un objeto de error amigable.
