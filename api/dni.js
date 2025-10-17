@@ -1,14 +1,18 @@
-    // /api/dni.js (VERSIÓN FINAL Y ROBUSTA)
-    export default async function handler(req, res) {
+// /api/dni.js (VERSIÓN FINAL Y ROBUSTA)
+export default async function handler(req, res) {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
     if (req.method === 'OPTIONS') return res.status(200).end();
     
     try {
-        const { numeros } = req.body;
+        // Aceptar tanto objeto como string, y normalizar claves de entrada
+        const body = typeof req.body === 'string' ? JSON.parse(req.body || '{}') : (req.body || {});
+        let { numeros, dnis, dni } = body;
+        if (!numeros && dnis) numeros = dnis;
+        if (!numeros && dni) numeros = [dni];
         if (!numeros || !Array.isArray(numeros) || numeros.length === 0) {
-        return res.status(400).json({ error: 'Se requiere un array de "numeros".' });
+            return res.status(400).json({ error: 'Se requiere un array de "numeros".' });
         }
 
         const privateUrl = process.env.API_DNI_URL;
@@ -34,11 +38,18 @@
         return res.status(502).json({ error: `La API de consulta de DNI falló.` });
         }
 
-        const data = await apiResponse.json();
-        res.status(200).json(data);
+        // Devolver siempre JSON y mantener fallback seguro
+        try {
+            const data = await apiResponse.json();
+            return res.status(200).json(data);
+        } catch (e) {
+            const text = await apiResponse.text();
+            console.error('Advertencia: respuesta no JSON desde API DNI. Texto recibido:', text);
+            return res.status(200).json({ raw: text });
+        }
         
     } catch (error) {
         console.error('Error en proxy de Vercel (DNI):', error.message);
         res.status(500).json({ error: 'Error en el servidor al consultar DNI.' });
     }
-    }
+}
