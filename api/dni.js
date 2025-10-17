@@ -1,4 +1,4 @@
-    // /api/dni.js (VERSIÓN FINAL)
+    // /api/dni.js (VERSIÓN FINAL Y ROBUSTA)
     export default async function handler(req, res) {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -13,13 +13,13 @@
 
         const privateUrl = process.env.API_DNI_URL;
         if (!privateUrl) {
-        console.error('FATAL: Variable de entorno API_DNI_URL no encontrada en Vercel.');
+        console.error('FATAL: Variable de entorno API_DNI_URL no encontrada.');
         return res.status(500).json({ error: 'Configuración del servidor incompleta.' });
         }
 
         const finalUrl = `${privateUrl}/consultar`;
 
-        // CORRECCIÓN CLAVE: El cuerpo del JSON ahora usa la clave "dnis", como espera tu scraper de Python.
+        // CORRECCIÓN: El cuerpo del JSON debe usar la clave "dnis", como espera tu scraper.
         const bodyToSend = JSON.stringify({ dnis: numeros });
 
         const apiResponse = await fetch(finalUrl, {
@@ -30,7 +30,7 @@
 
         if (!apiResponse.ok) {
         const errorBody = await apiResponse.text();
-        console.error(`Error desde la API privada de DNI (status: ${apiResponse.status}):`, errorBody);
+        console.error(`Error desde API privada de DNI (status ${apiResponse.status}):`, errorBody);
         return res.status(502).json({ error: `La API de consulta de DNI falló.` });
         }
 
@@ -38,7 +38,7 @@
         res.status(200).json(data);
         
     } catch (error) {
-        console.error('Error en el proxy de Vercel (DNI):', error.message);
+        console.error('Error en proxy de Vercel (DNI):', error.message);
         res.status(500).json({ error: 'Error en el servidor al consultar DNI.' });
     }
     }
