@@ -35,7 +35,12 @@ export default async function handler(req, res) {
         if (!apiResponse.ok) {
         const errorBody = await apiResponse.text();
         console.error(`Error desde API privada de DNI (status ${apiResponse.status}):`, errorBody);
-        return res.status(502).json({ error: `La API de consulta de DNI falló.` });
+        let hint = undefined;
+        const lower = (errorBody || '').toLowerCase();
+        if (lower.includes('ruc') || lower.includes('rucs')) {
+            hint = 'La variable API_DNI_URL parece apuntar al servicio de RUC. Ajuste a la URL correcta del servicio de DNI (p.e. https://dni.billcodex.com).';
+        }
+        return res.status(502).json({ error: 'La API de consulta de DNI falló.', detail: errorBody, hint });
         }
 
         // Devolver siempre JSON y mantener fallback seguro
