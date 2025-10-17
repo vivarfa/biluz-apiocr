@@ -1,5 +1,4 @@
     // /api/dni.js
-    // Endpoint público: https://[tu-dominio].vercel.app/api/dni
     export default async function handler(req, res) {
     // Configuración de CORS
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -13,14 +12,15 @@
     }
 
     try {
-        // Lee la variable de entorno ESPECÍFICA para DNI
+        // Lee la variable de entorno para DNI
         const privateUrl = process.env.API_DNI_URL;
 
         if (!privateUrl) {
-        throw new Error('La variable de entorno API_DNI_URL no está configurada.');
+        console.error('ERROR: La variable de entorno API_DNI_URL no está configurada en Vercel.');
+        throw new Error('Configuración del servidor incompleta.');
         }
 
-        // Llama a tu API de Cloud Run de DNI
+        // Llama a tu API de Cloud Run
         const finalUrl = `${privateUrl}/consultar`;
         const apiResponse = await fetch(finalUrl, {
         method: 'POST',
@@ -28,13 +28,18 @@
         body: JSON.stringify({ numeros: numeros })
         });
 
-        if (!apiResponse.ok) throw new Error(`Error en la API privada de DNI: ${apiResponse.status}`);
+        // CORRECCIÓN CLAVE: Verifica si la respuesta NO fue exitosa
+        if (!apiResponse.ok) {
+            const errorText = await apiResponse.text();
+            throw new Error(`La API privada de DNI falló con estado ${apiResponse.status}: ${errorText}`);
+        }
 
+        // Si todo salió bien, devuelve los datos
         const data = await apiResponse.json();
         res.status(200).json(data);
         
     } catch (error) {
-        console.error('Error en proxy DNI:', error.message);
+        console.error('Error en el proxy de Vercel (DNI):', error.message);
         res.status(500).json({ error: 'Error en el servidor al consultar DNI.' });
     }
     }
