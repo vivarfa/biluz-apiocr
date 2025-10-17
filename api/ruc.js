@@ -1,5 +1,5 @@
 // /api/ruc.js (VERSIÓN FINAL Y ROBUSTA)
-    export default async function handler(req, res) {
+export default async function handler(req, res) {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -39,15 +39,19 @@
         console.error(`Error desde API privada de RUC (status ${apiResponse.status}):`, errorBody);
         return res.status(502).json({ error: `La API de consulta de RUC falló.` });
         }
-        
-        const text = await apiResponse.text();
-        // Intentar parsear; si falla, retornar texto para depuración
-        let data;
-        try { data = JSON.parse(text); } catch { data = text; }
-        res.status(200).json(data);
+        // Devolver SIEMPRE JSON válido
+        try {
+            const data = await apiResponse.json();
+            return res.status(200).json(data);
+        } catch (e) {
+            const text = await apiResponse.text();
+            console.error('Advertencia: respuesta no JSON desde API RUC. Texto recibido:', text);
+            // En caso extremo, envolver texto crudo para evitar romper el cliente
+            return res.status(200).json({ raw: text });
+        }
         
     } catch (error) {
         console.error('Error en proxy de Vercel (RUC):', error.message);
         res.status(500).json({ error: 'Error en el servidor al consultar RUC.' });
     }
-    }
+}
